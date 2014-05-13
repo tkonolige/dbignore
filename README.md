@@ -1,5 +1,4 @@
 # Dropbox Ignore
-#### .gitignore for dropbox
 
 # TODO
 - prevent write to ignored files
