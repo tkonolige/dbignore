@@ -1,5 +1,5 @@
 FLAGS := -std=c++11 -arch i386 -arch x86_64 -Wall -lz -framework CoreFoundation -framework Foundation -framework CydiaSubstrate -dynamiclib
-all: dropbox dbfs setuid
+all: dropbox
 
 setuid: set_uid.mm
 	rm -f set_uid
