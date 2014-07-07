@@ -3,6 +3,8 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 
+#include <pthread.h>
+
 #include "ignore_stub.h"
 
 int lstat(const char*, struct stat*);
@@ -14,6 +16,10 @@ int lstat(const char*, struct stat*);
 
 int(*lstat_old)(const char*, struct stat*);
 int lstat_new(const char* path, struct stat* buf) {
+  mach_port_t tid = pthread_mach_thread_np(pthread_self());
+  if(strstr(path, "Dropbox") != NULL)
+    syslog(LOG_NOTICE, "---> %i", tid);
+  syslog(LOG_NOTICE, path);
   if(ignore_hs(path)) {
     errno = ENOENT;
     return -1;
