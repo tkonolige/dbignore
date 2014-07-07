@@ -1,14 +1,12 @@
-FLAGS := -std=c++11 -arch i386 -arch x86_64 -Wall -lz -framework CoreFoundation -framework Foundation -dynamiclib
-all: dropbox
+all: combine
 
-setuid: set_uid.mm
-	rm -f set_uid
-	clang++ -framework Foundation -arch i386 -o set_uid set_uid.mm
-	chmod 06755 set_uid
-	sudo chown root:wheel set_uid
+i386:
+	/usr/local/stow/ghc-7.8.2-i386/bin/i386-apple-darwin-ghc -c ignore.hs
+	/usr/local/stow/ghc-7.8.2-i386/bin/i386-apple-darwin-ghc -no-hs-main dropbox_inj.c ignore.o -optl -dynamiclib -o dropbox_inj-i386.dylib
 
-dropbox: dropbox_inj.mm
-	clang++ $(FLAGS) -o dropbox_inj.dylib dropbox_inj.mm
+x86_64:
+	ghc -c ignore.hs
+	ghc -no-hs-main dropbox_inj.c ignore.o -optl -dynamiclib -o dropbox_inj-x86_64.dylib
 
-dbfs: dbfs_inj.mm
-	clang++ $(FLAGS) -o dbfs_inj.dylib dbfs_inj.mm
+combine: x86_64 i386
+	lipo dropbox_inj-i386.dylib dropbox_inj-x86_64.dylib -output dropbox_inj.dylib -create

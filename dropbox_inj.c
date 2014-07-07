@@ -5,7 +5,7 @@
 
 #include "ignore_stub.h"
 
-/* extern "C" int lstat(const char*, struct stat*); */
+int lstat(const char*, struct stat*);
 
 // from http://opensource.apple.com/source/dyld/dyld-210.2.3/include/mach-o/dyld-interposing.h
 #define DYLD_INTERPOSE(_replacement,_replacee) \
@@ -14,7 +14,7 @@
 
 int(*lstat_old)(const char*, struct stat*);
 int lstat_new(const char* path, struct stat* buf) {
-  if(ignore_hs(string(path))) {
+  if(ignore_hs(path)) {
     errno = ENOENT;
     return -1;
   }
@@ -24,10 +24,18 @@ DYLD_INTERPOSE(lstat_new, lstat);
 
 int (*open_old)(const char*, int, int);
 int open_new(const char* path, int flag, int mode) {
-  if(ignore_hs(string(path))) {
+  if(ignore_hs(path)) {
     syslog(LOG_NOTICE, "Ignoring... %s", path);
     return open("/dev/null", flag, mode);
   }
   return open(path, flag, mode);
 }
 DYLD_INTERPOSE(open_new, open);
+
+__attribute__((__constructor__)) static void initialize(void) {
+  int* argc = malloc(sizeof(int));
+  *argc = 0;
+  hs_init(argc, 0);
+  // TODO: happens when unloaded
+  /* hs_exit(); */
+}
