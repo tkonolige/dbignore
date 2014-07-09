@@ -1,4 +1,4 @@
-PACK=-package bytestring -package bytestring-trie -package posix-paths
+PACK=-package bytestring -package bytestring-trie -package posix-paths -package Glob -package directory
 C_CMD=-no-hs-main dropbox_inj.c ignore.o -optl -dynamiclib $(PACK) -optc -lz -optl -lz
 HS_CMD=-c ignore.hs
 

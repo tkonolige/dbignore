@@ -27,10 +27,6 @@ int lstat(const char*, struct stat*);
 
 int(*lstat_old)(const char*, struct stat*);
 int lstat_new(const char* path, struct stat* buf) {
-  mach_port_t tid = pthread_mach_thread_np(pthread_self());
-  if(strstr(path, "Dropbox") != NULL)
-    syslog(LOG_NOTICE, "---> %i", tid);
-  syslog(LOG_NOTICE, path);
   if(ignore(path)) {
     errno = ENOENT;
     return -1;
@@ -39,10 +35,9 @@ int lstat_new(const char* path, struct stat* buf) {
 }
 DYLD_INTERPOSE(lstat_new, lstat);
 
-int (*open_old)(const char*, int, int);
 int open_new(const char* path, int flag, int mode) {
   if(ignore(path)) {
-    syslog(LOG_NOTICE, "Ignoring... %s", path);
+    /* syslog(LOG_NOTICE, "Ignoring... %s", path); */
     return open("/dev/null", flag, mode);
   }
   return open(path, flag, mode);
@@ -53,7 +48,6 @@ __attribute__((__constructor__)) static void initialize(void) {
   int* argc = malloc(sizeof(int));
   *argc = 0;
   hs_init(argc, 0);
-  /* main_hs(); */
-  // TODO: happens when unloaded
+  // TODO: should happens when unloaded
   /* hs_exit(); */
 }
