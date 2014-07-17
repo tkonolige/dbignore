@@ -1,0 +1,6 @@
+*.o
+*.hi
+.dbignore
+ignore_stub.h
+*.dylib
+.DS_Store
