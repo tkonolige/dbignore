@@ -5,6 +5,8 @@
 #include "ignore_stub.h"
 #include <stdbool.h>
 
+#include <crt_externs.h>
+
 bool ignore(const char* p) {
   return ignore_hs((char*)p);
 }
@@ -13,7 +15,7 @@ struct stat;
 
 int lstat(const char*, struct stat*);
 
-// from http://opensource.apple.com/source/dyld/dyld-210.2.3/include/mach-o/dyld-interposing.h
+/* from http://opensource.apple.com/source/dyld/dyld-210.2.3/include/mach-o/dyld-interposing.h*/
 #define DYLD_INTERPOSE(_replacement,_replacee) \
    __attribute__((used)) static struct{ const void* replacement; const void* replacee; } _interpose_##_replacee \
             __attribute__ ((section ("__DATA,__interpose"))) = { (const void*)(unsigned long)&_replacement, (const void*)(unsigned long)&_replacee };
@@ -38,9 +40,8 @@ int open_new(const char* path, int flag, int mode) {
 DYLD_INTERPOSE(open_new, open);
 
 __attribute__((__constructor__)) static void initialize(void) {
-  int* argc = malloc(sizeof(int));
-  *argc = 0;
-  hs_init(argc, 0);
-  // TODO: should happen when unloaded
+  unsetenv("DYLD_INSERT_LIBRARIES"); /* only want to hook Dropbox */
+  hs_init(_NSGetArgc(), _NSGetArgv());
+  /* TODO: should happen when unloaded */
   /* hs_exit(); */
 }
