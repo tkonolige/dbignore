@@ -1,0 +1,16 @@
+=== Haskell bytestring-trie package AUTHORS/THANKS file ===
+
+The bytestring-trie package was written by wren gayle romano and is
+released under the terms in the LICENSE file. I would also like to
+give thanks to the following contributers:
+
+Maxime Henrion --- for the Binary (Trie a) instance and extensive
+    debugging work including almost all of the QuickCheck properties.
+
+Don Stewart --- for fostering the idea and offering feedback on
+    when the unsafe is safe in the internals of ByteStrings.
+
+Mark Wotton --- for benchmarking work comparing Trie to Map ByteString,
+    and for debugging.
+
+Gregory Crosswhite --- finding the critical bug in mergeBy

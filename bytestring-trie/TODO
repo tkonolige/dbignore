@@ -1,0 +1,52 @@
+* Reimplement things a-la HAMT <https://github.com/tibbe/unordered-containers/blob/hamt/Data/HashMap/Base.hs> for the wide fanout, ignoring the hashing stuff naturally.
+
+
+* Combine the test suite into a single executable and then do:
+    $> darcs setpref test "runhaskell Tests.hs"
+* Also, tell Setup.hs so that `cabal test` and `runhaskell Setup.hs
+  test` call the test suite.
+
+
+Data.Trie.Internal:
+* shouldn't the smart constructors be INLINE-ed?
+** If not, then we should at least have a special smart constructor for (arc _ Nothing _) since it's so common.
+* Verify that the new alterBy_ doesn't make the new alterBy less efficient than the old alterBy.
+* Check for the issue about using parameters at multiple recursion levels, as mentioned in the Containers paper. We should force those parameters outside of the recursion, doing so can save big.
+* Also check for using their other versions of maskW, which could give 10% speedup!
+
+* Accumulating mapping functions?
+* Efficient difference and intersection
+* Clean up the cruft from development
+* make the special handling for epsilons use a consistent style/name for all
+
+Data.Trie.BitTwiddle:
+* Do benchmarking to compare using (Bits Word8) vs (Bits Int) and elemToNat
+* Do benchmarking to see whether the Word8 instances are not worse than Int instances. If Int is better/as-good, see about maybe getting Data.IntMap to switch to using a module like ours and exporting it from base. This would introduce a dependency on a particular base version, but reuse is good.
+--- On x86 the time performance is basically the same (trivially worse, within margin of error), memory performance is slightly worse (maybe due to conversions et al). Should be similar on most other architectures, except maybe ARM where Word8 is different than Word16/Word32
+
+
+Data.Trie.ByteStringInternal:
+* Write quickcheck law for breakMaximalPrefix
+* Debug the C version of indexOfDifference
+** Write a smart constructor for ByteStrings to ensure good alignment
+** Write debugging suite for cross-platform checking
+
+
+Data.Trie.Convenience:
+* Try to find a single best implementation of fromList instead of all these variants. Some kind of amortized approximation to sorting which lets us be lazier?
+* fromListWith, fromListWithKey?
+* insertLookupWithKey, updateLookupWithKey (by some sort of Applicative or State transform? is there a more efficient way without re-engineering the core code?)
+* Move elems,keys here from Data.Trie?
+* filter (using filterMap), filterWithKey (using mapBy)
+* partition, partitionWithKey, mapEither[WithKey] ?
+* split, splitLookup ??
+* min and max stuff so we can treat Trie like a priority queue too??
+
+
+Other:
+* Reconsider a version of Trie that uses natural word size everywhere. Simplest way to maintain invariants is probably to have multiple values stored in each arc (one for each byte). But there might be some other way to do it...
+
+* Get real complexity numbers for the main three functions.
+
+* Reformulate the Binary instance based on discussion on Haskell Cafe re Map
+* Implement the min/max views for use as a priority queue

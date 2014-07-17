@@ -1,0 +1,21 @@
+\begin{hcarentry}{bytestring-trie}
+\report{Wren N.G. Thornton}%05/10
+\status{slow development}
+\release{0.2.1.1}
+\portability{Haskell 98 + CPP}
+\makeheader
+
+The bytestring-trie library provides an efficient implementation of ``dictionaries'' mapping strings to values, using big-endian patricia tries (like \texttt{Data.IntMap}). In general \texttt{Trie} is more efficient than \texttt{Map ByteString} because memory and work is shared between strings with common prefixes, though the specifics will vary depending on the distribution of keys.
+
+\FuturePlans
+\begin{itemize}
+\item Min- and max-views for treating tries as priority queues.
+\item Efficient intersection and difference functions.
+\end{itemize}
+
+\FurtherReading
+\begin{itemize}
+\item Official source and documentation available on Hackage.
+\item The development branch is available from \url{http://community.haskell.org/~wren/}.
+\end{itemize}
+\end{hcarentry}

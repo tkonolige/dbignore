@@ -1,0 +1,113 @@
+----------------------------------------------------------------
+-- wren gayle romano <wren@community.haskell.org>   ~ 2013.01.10
+----------------------------------------------------------------
+
+-- By and large Cabal >=1.2 is fine; but >= 1.6 gives tested-with:
+-- and source-repository:.
+Cabal-Version:  >= 1.6
+Build-Type:     Simple
+
+Name:           bytestring-trie
+Version:        0.2.3.2
+Stability:      provisional
+Homepage:       http://code.haskell.org/~wren/
+Author:         wren gayle romano
+Maintainer:     wren@community.haskell.org
+Copyright:      Copyright (c) 2008--2013 wren gayle romano
+License:        BSD3
+License-File:   LICENSE
+
+Category:       Data, Data Structures
+Synopsis:       An efficient finite map from (byte)strings to values.
+Description:    An efficient finite map from (byte)strings to values.
+                .
+                The implementation is based on big-endian patricia
+                trees, like "Data.IntMap". We first trie on the
+                elements of "Data.ByteString" and then trie on the
+                big-endian bit representation of those elements.
+                Patricia trees have efficient algorithms for union
+                and other merging operations, but they're also quick
+                for lookups and insertions.
+                .
+                If you are only interested in being able to associate
+                strings to values, then you may prefer the @hashmap@
+                package which is faster for those only needing a
+                map-like structure. This package is intended for
+                those who need the extra capabilities that a trie-like
+                structure can offer (e.g., structure sharing to
+                reduce memory costs for highly redundant keys,
+                taking the submap of all keys with a given prefix,
+                contextual mapping, extracting the minimum and
+                maximum keys, etc.)
+
+
+Tested-With:
+    GHC == 6.12.1, GHC == 7.6.1
+Extra-source-files:
+    AUTHORS, VERSION
+Source-Repository head
+    Type:     darcs
+    Location: http://community.haskell.org/~wren/bytestring-trie
+
+----------------------------------------------------------------
+Flag base4
+    Default:     True
+    Description: base-4.0 emits "Prelude deprecated" messages in
+                 order to get people to be explicit about which
+                 version of base they use.
+
+Flag useCinternal
+    Default:     False
+    Description: Use optimized C implementation for indexOfDifference.
+                 See notes in Data.Trie.ByteStringInternal.
+
+Flag applicativeInBase
+    Default:     True
+    Description: Applicative functors were added in base-2.0
+
+Flag bytestringInBase
+    Default:     False
+    Description: The bytestring library was included in base-2.0
+                 and base-2.1.1, but for base-1.0 and base-3.0 it
+                 was a separate package
+
+----------------------------------------------------------------
+Library
+    Hs-Source-Dirs:  src
+    Exposed-Modules: Data.Trie
+                   , Data.Trie.Internal
+                   , Data.Trie.Convenience
+    Other-Modules:   Data.Trie.BitTwiddle
+                   , Data.Trie.ByteStringInternal
+                   , Data.Trie.Errors
+    Build-Depends: binary
+    
+    -- I think this is all that needs doing to get rid of the warnings?
+    -- BUG: looks like it's not enough
+    if flag(base4)
+        Build-Depends: base >= 4 && < 5
+    else
+        Build-Depends: base < 4
+        
+    if flag(bytestringInBase)
+        Build-Depends: base >= 2.0 && < 2.2
+    else
+        Build-Depends: base < 2.0 || >= 3, bytestring
+    
+    if flag(applicativeInBase)
+        Build-Depends: base >= 2.0
+        Cpp-Options: -DAPPLICATIVE_IN_BASE
+        -- BUG (Cabal 1.2 + Haddock): enable for Haddock, disable
+        -- for Hackage. Fixed in Cabal 1.6
+        --Ghc-Options: -DAPPLICATIVE_IN_BASE
+    else
+        Build-Depends: base < 2.0
+    
+    if flag(useCinternal)
+        C-Sources:     src/Data/Trie/ByteStringInternal/indexOfDifference.c
+        CC-Options:    -O3
+        Cpp-Options:   -D__USE_C_INTERNAL__
+-- Also need to add stuff to run Configure.hs, FWIW
+
+----------------------------------------------------------------
+----------------------------------------------------------- fin.
