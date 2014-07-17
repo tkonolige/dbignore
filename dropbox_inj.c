@@ -1,15 +1,8 @@
-#include <syslog.h>
 #include <errno.h>
 #include <fcntl.h>
 /* #include <sys/stat.h> don't include lstat otherwise the wrong version is hooked */
-
-#include <string.h>
 #include <stdlib.h>
-
-#include <pthread.h>
-
 #include "ignore_stub.h"
-
 #include <stdbool.h>
 
 bool ignore(const char* p) {
@@ -37,8 +30,8 @@ DYLD_INTERPOSE(lstat_new, lstat);
 
 int open_new(const char* path, int flag, int mode) {
   if(ignore(path)) {
-    /* syslog(LOG_NOTICE, "Ignoring... %s", path); */
-    return open("/dev/null", flag, mode);
+    errno = ENOENT;
+    return -1;
   }
   return open(path, flag, mode);
 }
@@ -48,6 +41,6 @@ __attribute__((__constructor__)) static void initialize(void) {
   int* argc = malloc(sizeof(int));
   *argc = 0;
   hs_init(argc, 0);
-  // TODO: should happens when unloaded
+  // TODO: should happen when unloaded
   /* hs_exit(); */
 }

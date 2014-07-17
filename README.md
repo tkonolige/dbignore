@@ -1,5 +1,7 @@
 # Dropbox Ignore
 
+# Building
+Dropbox is a 32-bit executable on OSX and must be built by a 32-bit version of ghc.
+
 # TODO
-- prevent write to ignored files
 - allow use of gitignore files
