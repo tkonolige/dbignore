@@ -1,0 +1,12 @@
+#!/bin/sh -x
+CDIR=`pwd`
+BUILD_DIR=`dirname $CDIR/$0`
+cd /Applications
+mv Dropbox.app _Dropbox.app
+mkdir -p Dropbox.app/Contents/Resources
+mkdir -p Dropbox.app/Contents/MacOS
+mv _Dropbox.app Dropbox.app/Contents/Resources/Dropbox.app
+cd Dropbox.app/Contents
+cp $BUILD_DIR/dropbox_inj.dylib Resources/
+cp $BUILD_DIR/launch MacOS/
+cp $BUILD_DIR/Info.plist .

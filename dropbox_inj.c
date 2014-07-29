@@ -7,6 +7,8 @@
 
 #include <crt_externs.h>
 
+#include <syslog.h>
+
 bool ignore(const char* p) {
   return ignore_hs((char*)p);
 }
