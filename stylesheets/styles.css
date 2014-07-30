@@ -2,7 +2,7 @@
 
 body {
   padding:50px;
-  font:14px/1.5 Lato, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font:18px/1.5 Lato, "Helvetica Neue", Helvetica, Arial, sans-serif;
   color:#777;
   font-weight:300;
 }
@@ -10,6 +10,7 @@ body {
 h1, h2, h3, h4, h5, h6 {
   color:#222;
   margin:0 0 20px;
+  font-family: 'Open Sans', sans-serif;
 }
 
 p, ul, ol, table, pre, dl {
@@ -21,7 +22,8 @@ h1, h2, h3 {
 }
 
 h1 {
-  font-size:28px;
+  font-size:60px;
+  text-align: center;
 }
 
 h2 {
@@ -30,6 +32,9 @@ h2 {
 
 h3, h4, h5, h6 {
   color:#494949;
+  font-size: 24px;
+  margin-bottom: 10px;
+  margin-top: 40px;
 }
 
 a {
@@ -46,7 +51,7 @@ a small {
 }
 
 .wrapper {
-  width:860px;
+  width:600px;
   margin:0 auto;
 }
 
@@ -60,7 +65,7 @@ blockquote {
 code, pre {
   font-family:Monaco, Bitstream Vera Sans Mono, Lucida Console, Terminal;
   color:#333;
-  font-size:12px;
+  font-size:16px;
 }
 
 pre {
@@ -96,12 +101,17 @@ img {
 }
 
 header {
-  width:270px;
-  float:left;
-  position:fixed;
+}
+
+header .sub {
+  font-family: 'Gentium Book Basic', serif;
+  font-size: 16px;
+  text-align: center;
+  margin-top: -10px;
 }
 
 header ul {
+  margin: 10px auto 30px auto;
   list-style:none;
   height:40px;
   
@@ -160,8 +170,6 @@ header ul a strong {
 }
 
 section {
-  width:500px;
-  float:right;
   padding-bottom:50px;
 }
 
