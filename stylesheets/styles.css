@@ -3,12 +3,13 @@
 body {
   padding:50px;
   font:18px/1.5 Lato, "Helvetica Neue", Helvetica, Arial, sans-serif;
-  color:#777;
+  color:#554236;
+  background-color: #F0F2EB;
   font-weight:300;
 }
 
 h1, h2, h3, h4, h5, h6 {
-  color:#222;
+  color:#FF4242;
   margin:0 0 20px;
   font-family: 'Open Sans', sans-serif;
 }
@@ -31,7 +32,6 @@ h2 {
 }
 
 h3, h4, h5, h6 {
-  color:#494949;
   font-size: 24px;
   margin-bottom: 10px;
   margin-top: 40px;
@@ -108,10 +108,11 @@ header .sub {
   font-size: 16px;
   text-align: center;
   margin-top: -10px;
+  color: #00A0B0;
 }
 
 header ul {
-  margin: 10px auto 30px auto;
+  margin: 30px auto 30px auto;
   list-style:none;
   height:40px;
   
