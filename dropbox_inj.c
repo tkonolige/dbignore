@@ -1,3 +1,6 @@
+// Copyright   :  (C) 2014 Tristan Konolige
+// License     :  BSD-style (see the file LICENSE)
+
 #include <errno.h>
 #include <fcntl.h>
 /* #include <sys/stat.h> don't include lstat otherwise the wrong version is hooked */

@@ -1,3 +1,6 @@
+-- Copyright   :  (C) 2014 Tristan Konolige
+-- License     :  BSD-style (see the file LICENSE)
+
 {-# LANGUAGE ForeignFunctionInterface #-}
 {-# LANGUAGE OverloadedStrings #-}
 
