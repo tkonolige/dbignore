@@ -2,7 +2,7 @@
 
 body {
   padding:50px;
-  font:18px/1.5 Lato, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font:18px/1.5 "Gentium Book Basic", "Helvetica Neue", Helvetica, Arial, sans-serif;
   color:#554236;
   background-color: #F0F2EB;
   font-weight:300;
@@ -32,7 +32,7 @@ h2 {
 }
 
 h3, h4, h5, h6 {
-  font-size: 24px;
+  font-size: 28px;
   margin-bottom: 10px;
   margin-top: 40px;
 }
@@ -65,7 +65,7 @@ blockquote {
 code, pre {
   font-family:Monaco, Bitstream Vera Sans Mono, Lucida Console, Terminal;
   color:#333;
-  font-size:16px;
+  font-size:14px;
 }
 
 pre {
@@ -112,63 +112,18 @@ header .sub {
 }
 
 header ul {
-  margin: 30px auto 30px auto;
   list-style:none;
-  height:40px;
-  
-  padding:0;
-  
-  background: #eee;
-  background: -moz-linear-gradient(top, #f8f8f8 0%, #dddddd 100%);
-  background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f8f8f8), color-stop(100%,#dddddd));
-  background: -webkit-linear-gradient(top, #f8f8f8 0%,#dddddd 100%);
-  background: -o-linear-gradient(top, #f8f8f8 0%,#dddddd 100%);
-  background: -ms-linear-gradient(top, #f8f8f8 0%,#dddddd 100%);
-  background: linear-gradient(top, #f8f8f8 0%,#dddddd 100%);
-  
-  border-radius:5px;
-  border:1px solid #d2d2d2;
-  box-shadow:inset #fff 0 1px 0, inset rgba(0,0,0,0.03) 0 -1px 0;
-  width:270px;
 }
 
 header li {
-  width:89px;
-  float:left;
-  border-right:1px solid #d2d2d2;
-  height:40px;
 }
 
-header ul a {
-  line-height:1;
-  font-size:11px;
-  color:#999;
-  display:block;
-  text-align:center;
-  padding-top:6px;
-  height:40px;
-}
 
 strong {
   color:#222;
   font-weight:700;
 }
 
-header ul li + li {
-  width:88px;
-  border-left:1px solid #fff;
-}
-
-header ul li + li + li {
-  border-right:none;
-  width:89px;
-}
-
-header ul a strong {
-  font-size:14px;
-  display:block;
-  color:#222;
-}
 
 section {
   padding-bottom:50px;
