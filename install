@@ -1,12 +1,9 @@
 #!/bin/sh -x
 CDIR=`pwd`
 BUILD_DIR=`dirname $CDIR/$0`
-cd /Applications
-mv Dropbox.app _Dropbox.app
-mkdir -p Dropbox.app/Contents/Resources
-mkdir -p Dropbox.app/Contents/MacOS
-mv _Dropbox.app Dropbox.app/Contents/Resources/Dropbox.app
-cd Dropbox.app/Contents
-cp $BUILD_DIR/dropbox_inj.dylib Resources/
-cp $BUILD_DIR/launch MacOS/
-cp $BUILD_DIR/Info.plist .
+cd /Applications/Dropbox.app/Contents
+cp $BUILD_DIR/dropbox_inj.dylib .
+sed -i'_bak' '$d' Info.plist
+sed -i'_bak' '$d' Info.plist
+echo "<key>LSEnvironment</key> <dict> <key>DYLD_INSERT_LIBRARIES</key> <string>/Applications/Dropbox.app/dropbox_inj.dylib</string> </dict> </dict>
+      </plist>" >> Info.plist
