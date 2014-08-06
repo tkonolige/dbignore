@@ -4,6 +4,7 @@
 {-# LANGUAGE ForeignFunctionInterface #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 {-
 TODO: there might be so weird conditions where the cache does not get updated properly
@@ -23,8 +24,12 @@ import Data.ByteString.Char8 as B8 (pack, unpack, split, lines)
 import qualified Data.Text as Text
 
 import Data.Trie as T
+import Data.Maybe
 
 import Control.Monad
+import Control.Applicative
+import Control.Exception
+import Control.Exception.Base
 
 import Control.Concurrent.MVar
 import System.IO.Unsafe
@@ -42,12 +47,21 @@ initialized :: MVar Bool
 {-# NOINLINE initialized #-}
 initialized = unsafePerformIO (newMVar False)
 
-dbignoreName :: ByteString
-dbignoreName = ".dbignore"
+data Config = Config { dbPath :: RawFilePath
+                     , dbName :: ByteString
+                     }
 
-dropboxPath :: MVar RawFilePath
-{-# NOINLINE dropboxPath #-}
-dropboxPath = unsafePerformIO (newMVar B.empty)
+instance FromJSON Config where
+  parseJSON (Object v) = Config <$>
+                         return B.empty <*> -- dbPath unknown at this point
+                         (fmap B8.pack $ v .:? "ignore_file_name" .!= ".dbignore")
+  parseJSON _          = mzero
+
+defaultConfig = Config { dbPath = B.empty, dbName = ".dbignore" }
+
+config :: MVar Config
+{-# NOINLINE config #-}
+config = unsafePerformIO (newMVar defaultConfig)
 
 -- figure out dropbox directory
 -- Dropbox stores its location inside ~/.dropbox/info.json
@@ -61,22 +75,29 @@ getDropboxPath = do
       String path = pp ! "path"
   return $ B8.pack $ Text.unpack path
 
-isDBIgnore :: RawFilePath -> Bool
-isDBIgnore = isSuffixOf dbignoreName
+isDBIgnore :: Config -> RawFilePath -> Bool
+isDBIgnore conf = isSuffixOf (dbName conf)
 
 -- add patterns in an ignore file to the cache
 addIgnore :: RawFilePath -> Trie [Pattern] -> IO (Trie [Pattern])
-addIgnore file trie = do
+addIgnore file trie = handle (\(e :: IOException) -> return trie) $ do
   regexs <- B.readFile $ B8.unpack file
   let splits = Prelude.map (compile . B8.unpack . (takeDirectory file `append` "/" `append`)) $ B8.lines regexs
   return $ T.insert (takeDirectory file) splits trie
+
+readConfig :: RawFilePath -> IO Config
+readConfig dbpath = handle (\(e :: IOException) -> return defaultConfig) $ do
+  conf <- B.readFile $ B8.unpack $ dbpath `append` "/.dbignore_config"
+  let cc = fromMaybe defaultConfig $ decodeStrict' conf
+  return $ cc {dbPath = dbpath};
 
 -- initialize the cache
 initialize :: IO ()
 initialize = do 
   dbpath <- getDropboxPath
-  modifyMVar_ dropboxPath $ \_ -> return dbpath
-  ignores <- globDir1 (compile $ "**/" ++ B8.unpack dbignoreName) $ B8.unpack dbpath
+  conf <- readConfig dbpath
+  modifyMVar_ config $ const $ return conf
+  ignores <- globDir1 (compile $ "**/" ++ B8.unpack (dbName conf)) $ B8.unpack dbpath
   modifyMVar_ cacheVar $ \cache ->
     foldM (flip addIgnore) cache $ Prelude.map B8.pack ignores
 
@@ -87,11 +108,11 @@ ignore file = do
   modifyMVar_ initialized $ \case
                               True  -> return True
                               False -> initialize >> return True
-  dbpath <- readMVar dropboxPath
-  case isPrefixOf dbpath file of -- coarse filter
+  conf <- readMVar config
+  case isPrefixOf (dbPath conf) file of -- coarse filter
     True -> do
       modifyMVar cacheVar $ \cache -> do
-        res <- case isDBIgnore file of -- check to see if this is .dbignore
+        res <- case isDBIgnore conf file of -- check to see if this is .dbignore
                  True  -> do
                    t <- addIgnore file cache
                    return (t, False)

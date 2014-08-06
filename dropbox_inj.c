@@ -47,6 +47,7 @@ DYLD_INTERPOSE(open_new, open);
 __attribute__((__constructor__)) static void initialize(void) {
   unsetenv("DYLD_INSERT_LIBRARIES"); /* only want to hook Dropbox */
   hs_init(_NSGetArgc(), _NSGetArgv());
+  syslog(LOG_NOTICE, "dbignore loaded");
   /* TODO: should happen when unloaded */
   /* hs_exit(); */
 }
