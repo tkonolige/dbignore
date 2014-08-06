@@ -36,6 +36,9 @@
 
 <p>Add a <code>.dbignore</code> to a directory to tell Dropbox to ignore certain files. Files will be ignored if they match any of the patterns in the <code>.dbignore</code> file. See <a href="http://git-scm.com/docs/gitignore">the gitignore docs</a> for more information.</p>
 
+<h3>Settings</h3>
+<p>Settings for dbignore are located at <code>~/Dropbox/.dbignore_config</code> in json format. Currently, the only supported setting is changing the name of the ignore files. If you want to use <code>.gitignore</code> instead of <code>.dbignore</code>, add <code>{"ignore_file_name":".gitignore"}</code> to <code>~/Dropbox/.dbignore_config</code>.
+
 <h3>Supported Platforms</h3>
 <p>Currently, the only supported platform is OSX. Dbignore has been tested on 10.9 but should work on earlier versions.</p>
       </section>
