@@ -3,7 +3,10 @@ CDIR=`pwd`
 BUILD_DIR=`dirname $CDIR/$0`
 cd /Applications/Dropbox.app/Contents
 cp $BUILD_DIR/dropbox_inj.dylib .
-sed -i'_bak' '$d' Info.plist
-sed -i'_bak' '$d' Info.plist
-echo "<key>LSEnvironment</key> <dict> <key>DYLD_INSERT_LIBRARIES</key> <string>/Applications/Dropbox.app/dropbox_inj.dylib</string> </dict> </dict>
-      </plist>" >> Info.plist
+if grep -Fxq "DYLD_INSERT_LIBRARIES" /Applications/Dropbox.app/Contents/Info.plist
+then
+  sed -i'_bak' '$d' Info.plist
+  sed -i'_bak' '$d' Info.plist
+  echo "<key>LSEnvironment</key> <dict> <key>DYLD_INSERT_LIBRARIES</key> <string>/Applications/Dropbox.app/dropbox_inj.dylib</string> </dict> </dict>
+        </plist>" >> Info.plist
+fi
