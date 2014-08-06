@@ -19,7 +19,7 @@ import System.Posix.FilePath
 import System.FilePath.Glob
 
 import Data.ByteString as B
-import Data.ByteString.Char8 as B8 (pack, unpack, split)
+import Data.ByteString.Char8 as B8 (pack, unpack, split, lines)
 import qualified Data.Text as Text
 
 import Data.Trie as T
@@ -68,8 +68,17 @@ isDBIgnore = isSuffixOf dbignoreName
 addIgnore :: RawFilePath -> Trie [Pattern] -> IO (Trie [Pattern])
 addIgnore file trie = do
   regexs <- B.readFile $ B8.unpack file
-  let splits = Prelude.map (compile . B8.unpack . (takeDirectory file `append` "/" `append`)) $ lines regexs
+  let splits = Prelude.map (compile . B8.unpack . (takeDirectory file `append` "/" `append`)) $ B8.lines regexs
   return $ T.insert (takeDirectory file) splits trie
+
+-- initialize the cache
+initialize :: IO ()
+initialize = do 
+  dbpath <- getDropboxPath
+  modifyMVar_ dropboxPath $ \_ -> return dbpath
+  ignores <- globDir1 (compile $ "**/" ++ B8.unpack dbignoreName) $ B8.unpack dbpath
+  modifyMVar_ cacheVar $ \cache ->
+    foldM (flip addIgnore) cache $ Prelude.map B8.pack ignores
 
 -- the main ignore function
 -- determines if a filepath should be ignored or not
@@ -77,13 +86,7 @@ ignore :: RawFilePath -> IO Bool
 ignore file = do
   modifyMVar_ initialized $ \case
                               True  -> return True
-                              False -> do
-                                dbpath <- getDropboxPath
-                                modifyMVar_ dropboxPath $ \_ -> return dbpath
-                                ignores <- globDir1 (compile $ "**/" `append` dbignoreName) $ B8.unpack dbpath
-                                modifyMVar_ cacheVar $ \cache ->
-                                  foldM (flip addIgnore) cache $ Prelude.map B8.pack ignores
-                                return True
+                              False -> initialize >> return True
   dbpath <- readMVar dropboxPath
   case isPrefixOf dbpath file of -- coarse filter
     True -> do
