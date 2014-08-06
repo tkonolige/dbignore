@@ -3,6 +3,7 @@
 
 {-# LANGUAGE ForeignFunctionInterface #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE LambdaCase #-}
 
 {-
 TODO: there might be so weird conditions where the cache does not get updated properly
@@ -48,6 +49,8 @@ dropboxPath :: MVar RawFilePath
 {-# NOINLINE dropboxPath #-}
 dropboxPath = unsafePerformIO (newMVar B.empty)
 
+-- figure out dropbox directory
+-- Dropbox stores its location inside ~/.dropbox/info.json
 getDropboxPath :: IO RawFilePath
 getDropboxPath = do
   home <- getHomeDirectory
@@ -61,42 +64,44 @@ getDropboxPath = do
 isDBIgnore :: RawFilePath -> Bool
 isDBIgnore = isSuffixOf dbignoreName
 
+-- add patterns in an ignore file to the cache
 addIgnore :: RawFilePath -> Trie [Pattern] -> IO (Trie [Pattern])
 addIgnore file trie = do
   regexs <- B.readFile $ B8.unpack file
-  let splits = Prelude.map (compile . B8.unpack . (takeDirectory file `append` "/" `append`)) $ B8.split '\n' regexs
+  let splits = Prelude.map (compile . B8.unpack . (takeDirectory file `append` "/" `append`)) $ lines regexs
   return $ T.insert (takeDirectory file) splits trie
 
+-- the main ignore function
+-- determines if a filepath should be ignored or not
 ignore :: RawFilePath -> IO Bool
 ignore file = do
-  modifyMVar_ initialized $ \init -> case init of
-                                        True  -> return True
-                                        False -> do
-                                          dbpath <- getDropboxPath
-                                          modifyMVar_ dropboxPath $ \_ -> return dbpath
-                                          ignores <- globDir1 (compile "**/.dbignore") $ B8.unpack dbpath
-                                          modifyMVar_ cacheVar $ \cache -> foldM (flip addIgnore) cache $ Prelude.map B8.pack ignores
-                                          return True
+  modifyMVar_ initialized $ \case
+                              True  -> return True
+                              False -> do
+                                dbpath <- getDropboxPath
+                                modifyMVar_ dropboxPath $ \_ -> return dbpath
+                                ignores <- globDir1 (compile $ "**/" `append` dbignoreName) $ B8.unpack dbpath
+                                modifyMVar_ cacheVar $ \cache ->
+                                  foldM (flip addIgnore) cache $ Prelude.map B8.pack ignores
+                                return True
   dbpath <- readMVar dropboxPath
   case isPrefixOf dbpath file of -- coarse filter
     True -> do
       modifyMVar cacheVar $ \cache -> do
-        -- B.putStrLn file
-        res <- case isDBIgnore file of
+        res <- case isDBIgnore file of -- check to see if this is .dbignore
                  True  -> do
                    t <- addIgnore file cache
                    return (t, False)
-                 False -> case nearestMatch file cache of
-                            Just (path, regexs) -> go regexs >>= return . (,) cache
+                 False -> case nearestMatch file cache of -- find the nearest .dbignore
+                            Just (path, regexs) -> doesMatch regexs >>= return . (,) cache
                              where
-                               go :: [Pattern] -> IO Bool
-                               go (r:rs) = do
+                               doesMatch :: [Pattern] -> IO Bool -- TODO: looks like a fold
+                               doesMatch (r:rs) = do
                                  case match r (B8.unpack file) of 
                                    True  -> return True
-                                   False -> go rs
-                               go [] = return False
+                                   False -> doesMatch rs
+                               doesMatch [] = return False
                             Nothing -> return (cache, False) -- could not find any ignore files
-        -- print $ snd res
         return res
     False -> return False
 
@@ -105,15 +110,8 @@ boolToCInt b = case b of
                  True  -> 1
                  False -> 0
 
+-- c wrapper for ignore
 ignore_hs :: CString -> IO CInt
 ignore_hs str = packCString str >>= (liftM boolToCInt) . ignore
 
 foreign export ccall ignore_hs :: CString -> IO CInt
-
-foreign import ccall "fnmatch.h fnmatch" c_fnmatch :: CString -> CString -> CInt -> CInt
-
-fnmatch :: ByteString -> ByteString -> IO Bool
-fnmatch patb strb = useAsCString patb $ \pat -> useAsCString strb $ \str -> do
-  case c_fnmatch pat str 0 of
-    0 -> return True
-    _ -> return False
