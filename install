@@ -1,9 +1,9 @@
 #!/bin/sh -x
 BUILD_DIR=`dirname $0`
-cd /Applications/Dropbox.app/Contents
-cp $BUILD_DIR/dropbox_inj.dylib .
+cp $BUILD_DIR/dropbox_inj.dylib /Applications/Dropbox.app/Contents
 if grep -Fxq "DYLD_INSERT_LIBRARIES" /Applications/Dropbox.app/Contents/Info.plist
 then
+  cd /Applications/Dropbox.app/Contents
   sed -i'_bak' '$d' Info.plist
   sed -i'_bak' '$d' Info.plist
   echo "<key>LSEnvironment</key> <dict> <key>DYLD_INSERT_LIBRARIES</key> <string>/Applications/Dropbox.app/dropbox_inj.dylib</string> </dict> </dict>
