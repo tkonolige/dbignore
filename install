@@ -1,6 +1,5 @@
 #!/bin/sh -x
-CDIR=`pwd`
-BUILD_DIR=`dirname $CDIR/$0`
+BUILD_DIR=`dirname $0`
 cd /Applications/Dropbox.app/Contents
 cp $BUILD_DIR/dropbox_inj.dylib .
 if grep -Fxq "DYLD_INSERT_LIBRARIES" /Applications/Dropbox.app/Contents/Info.plist
