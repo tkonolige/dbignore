@@ -1,7 +1,7 @@
 #!/bin/sh -x
 BUILD_DIR=`dirname $0`
 cp $BUILD_DIR/dropbox_inj.dylib /Applications/Dropbox.app/Contents
-if grep -Fxq "DYLD_INSERT_LIBRARIES" /Applications/Dropbox.app/Contents/Info.plist
+if ! grep -q "DYLD_INSERT_LIBRARIES" /Applications/Dropbox.app/Contents/Info.plist
 then
   cd /Applications/Dropbox.app/Contents
   sed -i'_bak' '$d' Info.plist
