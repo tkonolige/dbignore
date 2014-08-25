@@ -49,19 +49,29 @@ initialized = unsafePerformIO (newMVar False)
 
 data Config = Config { dbPath :: RawFilePath
                      , dbName :: ByteString
+                     , debug  :: Bool
                      }
+                     deriving (Show)
 
 instance FromJSON Config where
   parseJSON (Object v) = Config <$>
                          return B.empty <*> -- dbPath unknown at this point
-                         (fmap B8.pack $ v .:? "ignore_file_name" .!= ".dbignore")
+                         (fmap B8.pack $ v .:? "ignore_file_name" .!= ".dbignore") <*>
+                         v .:? "debug" .!= False
   parseJSON _          = mzero
 
-defaultConfig = Config { dbPath = B.empty, dbName = ".dbignore" }
+defaultConfig = Config { dbPath = B.empty, dbName = ".dbignore", debug = False }
 
 config :: MVar Config
 {-# NOINLINE config #-}
 config = unsafePerformIO (newMVar defaultConfig)
+
+debugMsg :: Config -> String -> IO ()
+debugMsg conf msg = handle (\(e :: IOException) -> return ()) $ do -- TODO: write concurrently
+  if debug conf then do
+    Prelude.appendFile (B8.unpack (dbPath conf) ++ "/../dbignore_log") (msg ++ "\n")
+  else
+    return ()
 
 -- figure out dropbox directory
 -- Dropbox stores its location inside ~/.dropbox/info.json
@@ -93,11 +103,14 @@ readConfig dbpath = handle (\(e :: IOException) -> return defaultConfig) $ do
 
 -- initialize the cache
 initialize :: IO ()
-initialize = do 
+initialize = do
   dbpath <- getDropboxPath
   conf <- readConfig dbpath
+  debugMsg conf "Initializing"
   modifyMVar_ config $ const $ return conf
   ignores <- globDir1 (compile $ "**/" ++ B8.unpack (dbName conf)) $ B8.unpack dbpath
+  debugMsg conf $ "Found ignore files:"
+  mapM_ (debugMsg conf . (++) "  ") ignores
   modifyMVar_ cacheVar $ \cache ->
     foldM (flip addIgnore) cache $ Prelude.map B8.pack ignores
 
@@ -111,21 +124,33 @@ ignore file = do
   conf <- readMVar config
   case isPrefixOf (dbPath conf) file of -- coarse filter
     True -> do
+      debugMsg conf $ "Ignore on " ++ B8.unpack file
       modifyMVar cacheVar $ \cache -> do
         res <- case isDBIgnore conf file of -- check to see if this is .dbignore
                  True  -> do
+                   debugMsg conf "  is ignore file"
                    t <- addIgnore file cache
                    return (t, False)
-                 False -> case nearestMatch file cache of -- find the nearest .dbignore
-                            Just (path, regexs) -> doesMatch regexs >>= return . (,) cache
-                             where
-                               doesMatch :: [Pattern] -> IO Bool -- TODO: looks like a fold
-                               doesMatch (r:rs) = do
-                                 case match r (B8.unpack file) of 
-                                   True  -> return True
-                                   False -> doesMatch rs
-                               doesMatch [] = return False
-                            Nothing -> return (cache, False) -- could not find any ignore files
+                 False -> do
+                   debugMsg conf " is not ignore file"
+                   case nearestMatch file cache of -- find the nearest .dbignore
+                     Just (path, regexs) -> do
+                       debugMsg conf $ "  nearest ignore file is " ++ B8.unpack path
+                       doesMatch regexs >>= return . (,) cache
+                      where
+                        doesMatch :: [Pattern] -> IO Bool -- TODO: looks like a fold
+                        doesMatch (r:rs) = do
+                          case match r (B8.unpack file) of 
+                            True  -> do
+                              debugMsg conf $ "    " ++ decompile r ++ " matches!"
+                              return True
+                            False -> do
+                              debugMsg conf $ "    " ++ decompile r ++ " does not match"
+                              doesMatch rs
+                        doesMatch [] = return False
+                     Nothing -> do
+                       debugMsg conf "  no ignore file found"
+                       return (cache, False) -- could not find any ignore files
         return res
     False -> return False
 
