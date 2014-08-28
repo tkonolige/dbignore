@@ -19,4 +19,4 @@ then
   cp Info.plist Info.plist.bak
 fi
 
-plutil -replace 'PythonInfoDict.py2app.LSEnvironment' -json '{"DYLD_INSERT_LIBRARIES": "$DROPBOX_PATH/Contents/dropbox_inj.dylib"}' Info.plist
+plutil -replace 'PythonInfoDict.py2app.LSEnvironment' -json '{"DYLD_INSERT_LIBRARIES": "'"$DROPBOX_PATH"'/Contents/dropbox_inj.dylib"}' Info.plist
