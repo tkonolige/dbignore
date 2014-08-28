@@ -1,11 +1,11 @@
 #!/bin/sh -x
 BUILD_DIR=`dirname $0`
 cp $BUILD_DIR/dropbox_inj.dylib /Applications/Dropbox.app/Contents
+cd /Applications/Dropbox.app/Contents
+
 if ! grep -q "DYLD_INSERT_LIBRARIES" /Applications/Dropbox.app/Contents/Info.plist
 then
-  cd /Applications/Dropbox.app/Contents
-  sed -i '' '$d' Info.plist
-  sed -i '' '$d' Info.plist
-  echo "<key>LSEnvironment</key> <dict> <key>DYLD_INSERT_LIBRARIES</key> <string>/Applications/Dropbox.app/Contents/dropbox_inj.dylib</string> </dict> </dict>
-        </plist>" >> Info.plist
+  cp Info.plist Info.plist.bak
 fi
+
+plutil -replace 'PythonInfoDict.py2app.LSEnvironment' -json '{"DYLD_INSERT_LIBRARIES": "/Applications/Dropbox.app/Contents/dropbox_inj.dylib"}' Info.plist
