@@ -1,11 +1,22 @@
 #!/bin/sh -x
 BUILD_DIR=`dirname $0`
-cp $BUILD_DIR/dropbox_inj.dylib /Applications/Dropbox.app/Contents
-cd /Applications/Dropbox.app/Contents
+DROPBOX_PATH="/Applications/Dropbox.app"
 
-if ! grep -q "DYLD_INSERT_LIBRARIES" /Applications/Dropbox.app/Contents/Info.plist
+for f in $(mdfind -name Dropbox.app)
+do
+  if [ -f "$f/Contents/MacOS/Dropbox" ]
+  then
+    DROPBOX_PATH="$f"
+    break
+  fi
+done
+
+cp $BUILD_DIR/dropbox_inj.dylib "$DROPBOX_PATH"/Contents
+cd "$DROPBOX_PATH"/Contents
+
+if ! grep -q "DYLD_INSERT_LIBRARIES" "$DROPBOX_PATH"/Contents/Info.plist
 then
   cp Info.plist Info.plist.bak
 fi
 
-plutil -replace 'PythonInfoDict.py2app.LSEnvironment' -json '{"DYLD_INSERT_LIBRARIES": "/Applications/Dropbox.app/Contents/dropbox_inj.dylib"}' Info.plist
+plutil -replace 'PythonInfoDict.py2app.LSEnvironment' -json '{"DYLD_INSERT_LIBRARIES": "$DROPBOX_PATH/Contents/dropbox_inj.dylib"}' Info.plist
