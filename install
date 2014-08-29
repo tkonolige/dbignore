@@ -1,11 +1,33 @@
 #!/bin/sh -x
 BUILD_DIR=`dirname $0`
-cp $BUILD_DIR/dropbox_inj.dylib /Applications/Dropbox.app/Contents
-if ! grep -q "DYLD_INSERT_LIBRARIES" /Applications/Dropbox.app/Contents/Info.plist
+DROPBOX_PATH="/Applications/Dropbox.app"
+
+if [ ! -f "$DROPBOX_PATH"/Contents/MacOS/Dropbox ]
 then
-  cd /Applications/Dropbox.app/Contents
-  sed -i '' '$d' Info.plist
-  sed -i '' '$d' Info.plist
-  echo "<key>LSEnvironment</key> <dict> <key>DYLD_INSERT_LIBRARIES</key> <string>/Applications/Dropbox.app/Contents/dropbox_inj.dylib</string> </dict> </dict>
-        </plist>" >> Info.plist
+  DROPBOX_PATH=""
+  
+  for f in $(mdfind -name Dropbox.app)
+  do
+    if [ -f "$f/Contents/MacOS/Dropbox" ]
+    then
+      DROPBOX_PATH="$f"
+      break
+    fi
+  done
+  
+  if [ -z "$DROPBOX_PATH" ]
+  then
+    echo "Dropbox.app not found! Do you have Dropbox installed?"
+    exit 1
+  fi
 fi
+
+cp $BUILD_DIR/dropbox_inj.dylib "$DROPBOX_PATH"/Contents
+cd "$DROPBOX_PATH"/Contents
+
+if ! grep -q "DYLD_INSERT_LIBRARIES" "$DROPBOX_PATH"/Contents/Info.plist
+then
+  cp Info.plist Info.plist.bak
+fi
+
+plutil -replace 'LSEnvironment' -json '{"DYLD_INSERT_LIBRARIES": "'"$DROPBOX_PATH"'/Contents/dropbox_inj.dylib"}' Info.plist
