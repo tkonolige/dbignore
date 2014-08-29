@@ -2,14 +2,25 @@
 BUILD_DIR=`dirname $0`
 DROPBOX_PATH="/Applications/Dropbox.app"
 
-for f in $(mdfind -name Dropbox.app)
-do
-  if [ -f "$f/Contents/MacOS/Dropbox" ]
+if [ ! -f "$DROPBOX_PATH"/Contents/MacOS/Dropbox ]
+then
+  DROPBOX_PATH=""
+  
+  for f in $(mdfind -name Dropbox.app)
+  do
+    if [ -f "$f/Contents/MacOS/Dropbox" ]
+    then
+      DROPBOX_PATH="$f"
+      break
+    fi
+  done
+  
+  if [ -z "$DROPBOX_PATH" ]
   then
-    DROPBOX_PATH="$f"
-    break
+    echo "Dropbox.app not found! Do you have Dropbox installed?"
+    exit 1
   fi
-done
+fi
 
 cp $BUILD_DIR/dropbox_inj.dylib "$DROPBOX_PATH"/Contents
 cd "$DROPBOX_PATH"/Contents
