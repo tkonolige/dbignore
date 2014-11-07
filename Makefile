@@ -5,5 +5,5 @@ HS_CMD=-c ignore.hs
 all: i386
 
 i386:
-	/usr/local/stow/ghc-7.8.2-i386/bin/i386-apple-darwin-ghc -threaded $(HS_CMD)
-	/usr/local/stow/ghc-7.8.2-i386/bin/i386-apple-darwin-ghc -threaded $(C_CMD) -o dropbox_inj.dylib
+	/usr/local/stow/bin/ghc -threaded $(HS_CMD)
+	/usr/local/stow/bin/ghc -threaded $(C_CMD) -o dropbox_inj.dylib
