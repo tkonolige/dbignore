@@ -1,5 +1,8 @@
 # Dropbox Ignore
 
+# dbignore is currently broken
+Recent versions of Dropbox do not work with dbignore. I currently lack the time fix dbignore.
+
 #Installation
 Download the latest release (look under the releases tab), unzip it, and run `./install`
 
